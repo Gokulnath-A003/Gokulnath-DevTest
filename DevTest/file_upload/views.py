@@ -13,44 +13,44 @@ def upload_file(request):
             fs = FileSystemStorage()
             file_path = fs.save(uploaded_file.name, uploaded_file)
 
-            # Load the file into a DataFrame
+            
             if uploaded_file.name.endswith('.csv'):
                 df = pd.read_csv(fs.path(file_path))
             else:
                 df = pd.read_excel(fs.path(file_path), sheet_name=0)
 
-            # Clean the DataFrame
-            df.dropna(how='all', inplace=True)  # Drop any rows where all elements are NaN
-            df.columns = df.columns.str.strip()  # Clean column names
+            
+            df.dropna(how='all', inplace=True)  
+            df.columns = df.columns.str.strip()  
 
-            # Debugging: Print the first few rows of the DataFrame
+            
             print("Loaded DataFrame:")
             print(df.head())
 
-            # Convert Cust Pin to string to match the text format in the CSV
+            
             df['Cust Pin'] = df['Cust Pin'].astype(str)
 
-            # Define the criteria for filtering
+            
             desired_states = ["ARUNACHAL PRADESH", "JHARKHAND"]
-            desired_pins = [str(pin) for pin in [791121, 791112, 816101, 816108]]  # Convert to string
+            desired_pins = [str(pin) for pin in [791121, 791112, 816101, 816108]]  
 
-            # Apply filters
+            
             filtered_df = df[
                 (df['Cust State'].isin(desired_states)) &
                 (df['Cust Pin'].isin(desired_pins)) 
             ]
 
-            # Debugging: Print filtered DataFrame
+            
             print("Filtered DataFrame:")
             print(filtered_df)
 
-            # Group by Cust State and Cust Pin, then count occurrences
+            
             result_df = filtered_df.groupby(['Cust State', 'Cust Pin']).size().reset_index(name='DPD')
 
-            # Get total records
+            
             total_records = len(result_df)
 
-            # Prepare HTML content for the email
+        
             html_content = """
             <html>
                 <body>
@@ -67,9 +67,8 @@ def upload_file(request):
                         <tbody>
             """.format(total_records=total_records)
 
-            # Check if there are records to include in the email
+            
             if total_records > 0:
-                # Populate the table with grouped data
                 for _, row in result_df.iterrows():
                     html_content += f"""
                         <tr>
@@ -85,7 +84,7 @@ def upload_file(request):
                     </tr>
                 """
 
-            # Close the table in the HTML
+    
             html_content += """
                         </tbody>
                     </table>
@@ -93,18 +92,18 @@ def upload_file(request):
             </html>
             """
 
-            # Prepare and send the email
+        
             email_subject = 'Your Summary Report'
             email = EmailMultiAlternatives(
                 subject=email_subject,
                 body=strip_tags(html_content),
-                from_email='kitcbe.25.21bcb018@gmail.com',  # Replace with your sender email
-                to=['kitcbe.25.21bcb018@gmail.com']        # Replace with the recipient's email
+                from_email='kitcbe.25.21bcb018@gmail.com', 
+                to=['kitcbe.25.21bcb018@gmail.com']     
             )
             email.attach_alternative(html_content, "text/html")
             email.send()
 
-            # Render the success page
+        
             return render(request, 'file_upload/success.html', {'total_records': total_records})
     else:
         form = UploadFileForm()
