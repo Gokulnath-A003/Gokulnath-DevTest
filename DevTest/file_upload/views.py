@@ -98,7 +98,7 @@ def upload_file(request):
                 subject=email_subject,
                 body=strip_tags(html_content),
                 from_email='kitcbe.25.21bcb018@gmail.com', 
-                to=['kitcbe.25.21bcb018@gmail.com']     
+                to=['tech@themedius.ai']     
             )
             email.attach_alternative(html_content, "text/html")
             email.send()
